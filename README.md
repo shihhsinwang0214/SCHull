@@ -66,19 +66,6 @@ _, _ , edge_index, edge_attr, radial_arr = schull.get_schull(pos, atoms)
 data = Data(atoms=atoms, edge_index=to_undirected(edge_index), pos=pos, natoms= 10, cell=cell, edge_attr= edge_attr)
 ```
 
----
-
-## 🔄 PyTorch Geometric Integration
-
-Use `graph_method="SCHull"` or `"SCHull_angular"` in your data pipeline:
-
-```python
-dataset = get_dataset(
-    augmented_data,
-    graph_method="SCHull",
-    cutoff=2.2,
-)
-```
 
 ---
 
