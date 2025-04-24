@@ -301,4 +301,3 @@ class SCHull(metaclass=ABCMeta):
         return data, cat_data, edge_index_hull, edge_attr_hull, radial_arr
 
 
-if __name__ == "__main__":
