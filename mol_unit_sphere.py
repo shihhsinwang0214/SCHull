@@ -60,103 +60,11 @@ class Molecule:
         self.pos = data
         self.z = cat_data
 
-class Frame(metaclass=ABCMeta):
+class SCHull(metaclass=ABCMeta):
     def __init__(self, tol=1e-2, *args, **kwargs):
         super().__init__()
         self.tol = tol
         self.chull = Qhull()
-
-
-    def align(self, data, shell_data, cat_data, pth):      
-        funcs = {0: z_axis_alignment, 1: zy_planar_alignment, 2: sign_alignment}
-        for idx,val in enumerate(pth):
-            # print('func index {}'.format(idx))
-            # print('input {}'.format(val))
-            # print(shell_data[val])
-            data = funcs[idx](data, shell_data[val])
-            shell_data = funcs[idx](shell_data, shell_data[val])
-        return data, shell_data
-
-    def traverse(self, sorted_graph, shell_data, shell_rank):
-        edge = 0
-        v0 = sorted_graph[edge][0][0]
-        if shell_rank == 1:
-            return [v0]
-        s0 = shell_data[v0]
-
-        v1 = None
-        while v1 is None and edge < len(sorted_graph):
-            possible_indices = sorted_graph[edge][1]
-            possible_indices = [i for i in possible_indices if i != v0]
-            for idx in possible_indices:
-                if np.abs(np.dot(s0, shell_data[idx])) > self.tol:
-                    v1 = idx
-                    break
-            if v1 is None:
-                edge += 1
-
-        if shell_rank == 2:
-            return [v0, v1]
-
-        v2 = self.v2_subroutine(v0, v1, edge, sorted_graph, shell_data, shell_rank)
-        if v2 is None:
-            v2 = self.v2_subroutine(v1, v0, edge, sorted_graph, shell_data, shell_rank)
-        
-        assert v2 is not None, 'v2 is None'
-
-        return [v0, v1, v2]
-
-    def v2_subroutine(self, v0, v1, edge, sorted_graph, shell_data, shell_rank):
-        s0 = shell_data[v0]
-        s1 = shell_data[v1]
-        v2 = None
-        while v2 is None and edge < len(sorted_graph):
-            if v1 in sorted_graph[edge][0]:
-                possible_indices = sorted_graph[edge][1]
-                possible_indices = [i for i in possible_indices if i != v0]
-                possible_indices = [i for i in possible_indices if i != v1]
-                for idx in possible_indices:
-                    cond1 = np.abs(np.dot(s0, shell_data[idx])) > self.tol
-                    cond2 = np.abs(np.dot(s1, shell_data[idx])) > self.tol
-                    if cond1 and cond2:
-                        v2 = idx
-                        break
-            if v2 is None:
-                edge += 1
-        return v2
-
-
-    def convert_partition(self, dist_hash, g_hash, r_encoding, g_encoding):
-        edges = list(tuple(ast.literal_eval(k)) for k in self.hopcroft._partition.keys())
-        ret_edges = []
-        ret_graph = []
-        for edge in edges:
-            # print(edge)
-            a,b = edge
-            r0 = get_key(dist_hash, a[0])
-            g0 = get_key(g_hash, a[1])
-            r1 = get_key(dist_hash, b[0])
-            g1 = get_key(g_hash, b[1])
-            ret_edges.append([(r0,g0),(r1,g1)])
-            r0 = get_key(r_encoding, a[0])
-            r1 = get_key(r_encoding, b[0])
-            ret_graph.append([r0,r1])
-
-        indexed_edges = sorted(enumerate(ret_edges), key=lambda x: x[1])
-        sorted_inidces = [i for i,_ in indexed_edges]
-        ret_edges = [element for index, element in indexed_edges]
-        ret_graph = [ret_graph[i] for i in sorted_inidces]
-        return sorted(ret_edges), ret_graph
-
-
-    def construct_dfa(self, encoding, graph):
-        dfa_encoding = {}
-        dfa_set = list()
-        for i,edge in enumerate(graph):
-            value = str([encoding[edge[0]], encoding[edge[1]]])
-            dfa_encoding[(edge[0], edge[1])] = (value, i)
-            dfa_set.append(value)
-        return dfa_set, dfa_encoding
 
     def align_center(self, pointcloud):
         return pointcloud - np.mean(pointcloud,axis=0)
@@ -416,7 +324,7 @@ class Frame(metaclass=ABCMeta):
                 )
         return attr_arr
 
-    def get_frame(self, data, cat_data, data_edge_index=None, *args, **kwargs):
+    def get_schull(self, data, cat_data, data_edge_index=None, *args, **kwargs):
 
         data = self.check_type(data) # Assert Type
         data = self.align_center(data) # Assert Centered
@@ -581,24 +489,3 @@ def plot_projection(ax, data, cat_data, shell_data, edges=[], cycle=[]):
         ax.text(-.1, 0, .98, "$x$", color='k')
 
 if __name__ == "__main__":
-    from torch_geometric.datasets import QM9
-    from scipy.spatial.transform import Rotation as R
-   
-    qm9 = QM9(root='/root/workspace/A_data/data/qm9-2.4.0/')
-    frame = Frame()
-    for i,data in enumerate(qm9):
-        k=37
-        if i>k:
-            break
-        elif i<k:
-            continue
-        else:
-            # print(data.smiles)
-            cat_data = data.z.numpy()
-            aligned_data = frame.get_frame(data.pos.numpy(), 
-                                           cat_data,
-                                           data.edge_index)
-            
-            print(f'\nROTATION {i}')
-
-    pass
