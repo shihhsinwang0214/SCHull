@@ -102,4 +102,3 @@ If you find this code useful, please cite:
 
 ```
 
-Let me know if you want this auto-pushed into your GitHub `README.md` or would like a second section for installation or testing notebooks!
