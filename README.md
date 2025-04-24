@@ -4,7 +4,7 @@
 
 This repository supports the ICLR 2025 Oral Presentation:  
 **[A Theoretically-Principled Sparse, Connected, and Rigid Graph Representation of Molecules](https://openreview.net/forum?id=OIvg3MqWX2)**  
-**Wang, S. H.^*, Huang, Y.^*, Baker, J., Sun, Y. E., Tang, Q., Wang, B.**
+**Wang, S. H.\*, Huang, Y.\*, Baker, J., Sun, Y. E., Tang, Q., Wang, B.**
 
 📄 [Slides](assets/ICLR25/ICLR_2025_oral_slides.pdf) | 🧵 [Poster](assets/ICLR25/ICLR_2025_oral_poster.pdf)  
 💻 Code will be available soon as a pip-installable library!
