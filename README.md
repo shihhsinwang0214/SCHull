@@ -42,8 +42,8 @@ SCHull.get_schull(positions: np.ndarray, atom_types: np.ndarray)
 ### Outputs
 
 Returns:
-- `edges`: list of edge tuples.
-- `simplices`: simplicial complexes used for construction.
+- `positions`: the original input.
+- `atom_types`: the original input.
 - `edge_index`: source-target index pairs.
 - `edge_attr`: edge features (length, angle).
 - `radial_arr`: radial distances.
@@ -54,13 +54,16 @@ Returns:
 
 ```python
 import numpy as np
+from torch_geometric.data import Data
 from SCHull import SCHull
 
 pos = np.random.rand(10, 3) * 10
 atoms = np.zeros(10, dtype=int)
 
 schull = SCHull()
-edges, simplices, edge_index, edge_attr, radial_arr = schull.get_schull(pos, atoms)
+_, _ , edge_index, edge_attr, radial_arr = schull.get_schull(pos, atoms)
+
+data = Data(atoms=atoms, edge_index=to_undirected(edge_index), pos=pos, natoms= 10, cell=cell, edge_attr= edge_attr)
 ```
 
 ---
