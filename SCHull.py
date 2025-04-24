@@ -4,7 +4,7 @@ import torch
 import numpy as np
 
 import sys
-sys.path.append('/root/workspace/UnitSphere/alignment/pyorbit/utils/')
+sys.path.append('/root/workspace/SCHull/alignment/pyorbit/utils/')
 
 from alignment3D import *
 from qhull import Qhull
