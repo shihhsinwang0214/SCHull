@@ -95,10 +95,5 @@ If you find this code useful, please cite:
   year={2025}
 }
 ```
-
----
-
 📫 Questions or suggestions? Feel free to open an issue or email me at `shwang@math.utah.edu`.
-
-```
 
