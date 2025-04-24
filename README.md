@@ -1,6 +1,6 @@
 # SCHull
 
-**SCHull** (Sparse, Connected, and Hull-based Graph Construction) is a geometry-aware method for building molecular and point-cloud graphs that are sparse, connected, and rigid — ideal for use in 3D geometric learning tasks such as molecular modeling and protein structure representation.
+**SCHull** (Sparse, Connected, and Rigid Graph Construction) is a geometry-aware method for building molecular and point-cloud graphs that are sparse, connected, and rigid — ideal for use in 3D geometric learning tasks such as molecular modeling and protein structure representation.
 
 This repository supports the ICLR 2025 Oral Presentation:  
 **[A Theoretically-Principled Sparse, Connected, and Rigid Graph Representation of Molecules](https://openreview.net/forum?id=OIvg3MqWX2)**  
