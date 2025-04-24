@@ -2,21 +2,13 @@ from abc import ABCMeta
 import ast
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
-
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-import matplotlib.pyplot as plt
 
 import sys
 sys.path.append('/root/workspace/UnitSphere/alignment/pyorbit/utils/')
+
 from alignment3D import *
-from geometry import angle_between_vectors, planar_normal, project_onto_plane
-from hopcroft import PartitionRefinement
 from qhull import Qhull
 
-sys.path.append('/root/workspace/UnitSphere/alignment/pyorbit/vis/')
-from visualizer import Visualizer, plot_axes, plot_mol, plot_shell, plot_3d_pointcloud, plot_3d_polyhedron, plot_point, plot_plane
 
 def build_adjacency_list(edges):
     adj_list = {}
@@ -93,88 +85,6 @@ class SCHull(metaclass=ABCMeta):
 
             s_feature[point] = lst
         return s_feature
-   
-    def geometric_encoding(self, shell_data, 
-                           adj_list, 
-                           shell_rank, 
-                           angle_sorted=False):
-        # Project edges onto relative plane
-        encoding = {}
-        g_hash = {}
-        s_feature = {}
-
-        for point in adj_list.keys():
-            r_ij = shell_data[adj_list[point]]-shell_data[point]
-            if shell_rank == 1:
-                d_ij = np.zeros_like(np.linalg.norm(r_ij, axis=1))
-            else:
-                d_ij = np.linalg.norm(r_ij, axis=1)
-            projection = project_onto_plane(r_ij, shell_data[point])
-            angle = []
-            for i in range(len(projection)):
-
-                if shell_rank == 3:
-                    # angle += [angle_between_vectors(projection[i], projection[i-1])]
-                    # To do: optimize
-                    if i < len(projection) - 1:
-                        if angle_sorted:
-                            angle.append(tuple(sorted([angle_between_vectors(projection[i], projection[i+1]), 
-                                            angle_between_vectors(projection[i], projection[i-1])])))
-                        else:
-                            angle.append(tuple([angle_between_vectors(projection[i], projection[i-1]), 
-                                            angle_between_vectors(projection[i], projection[i+1])]))
-                            # if np.isnan(angle_between_vectors(projection[i], projection[i-1])):
-                            #     print(projection[i])
-                            #     print(projection[i-1])
-                    else:
-                        if angle_sorted:
-                            angle.append(tuple(sorted([angle_between_vectors(projection[i], projection[0]), 
-                                            angle_between_vectors(projection[i], projection[i-1])])))
-                        else:
-                            angle.append(tuple([angle_between_vectors(projection[i], projection[i-1]), 
-                                            angle_between_vectors(projection[i], projection[0])]))
-                            # if np.isnan(angle_between_vectors(projection[i], projection[i-1])):
-                            #     print(projection[i])
-                            #     print(projection[i-1])
-                    ### modified by hyh: save two angles ###
-                else:
-                    angle += [(0, 0)]
-
-
-            # lexicographical shift
-            ### modified by hyh ###
-            # lst = [(custom_round(a,self.tol), custom_round(d, self.tol)) for a,d in zip(angle, d_ij)]
-            lst = {}
-            ct = 0
-            for angles, d in zip(angle, d_ij):
-                # lst.append(
-                #         (   
-                #             d,
-                #             (
-                #                 custom_round(angles[0], self.tol), 
-                #                 custom_round(angles[1], self.tol)
-                #             ),
-                #             (point, adj_list[point][ct]) 
-                #         )
-                #     )
-                lst[adj_list[point][ct]] = (
-                                            d,
-                                            (
-                                                custom_round(angles[0], self.tol), 
-                                                custom_round(angles[1], self.tol)
-                                            )
-                                            )
-                ct += 1
-            s_feature[point] = lst
-
-            # lst = tuple(list_rotate(lst))
-            # if lst not in g_hash:
-            #     g_hash[lst] = id(lst)
-            # encoding[point] = g_hash[lst]   
-            g_hash = None
-            encoding = None
-
-        return g_hash, encoding, s_feature
 
 
     def check_type(self, data, *args, **kwargs):
@@ -390,102 +300,5 @@ class SCHull(metaclass=ABCMeta):
     
         return data, cat_data, edge_index_hull, edge_attr_hull, radial_arr
 
-np.random.seed(1)
-
-plt.style.use('ggplot')
-plt.rcParams["figure.figsize"] = (16,9)
-plt.rcParams["font.size"] = 50
-plt.rcParams["font.family"] = 'serif'
-plt.rcParams['mathtext.default'] = 'default'
-# plt.rcParams["font.weight"] = 'bold'
-plt.rcParams["xtick.color"] = 'black'
-plt.rcParams["ytick.color"] = 'black'
-plt.rcParams["axes.edgecolor"] = 'black'
-plt.rcParams["axes.linewidth"] = 1
-
-from scipy.spatial.transform import Rotation as R
-
-AZIM=110
-ELEV=20
-L_THC = 16
-L_OP = .3
-P_THC = 2000
-P_OP = .4
-V_THC = 10
-V_OP = .1
-AR_LEN=0.2
-AX_LEN=0.
-AX_WTH=10
-AX_STY='_x'
-
-#-----------------------------------------------------------------------------------------------------------------------------------------------------
-# Init
-#-----------------------------------------------------------------------------------------------------------------------------------------------------
-
-def plot_projection(ax, data, cat_data, shell_data, edges=[], cycle=[]):
-
-    LIM = 0.7
-    ax.set_axis_off()
-    ax.set_xticklabels([])
-    ax.set_yticklabels([])
-    ax.set_zticklabels([])
-    ax.set_xlim([-LIM,LIM])
-    ax.set_ylim([-LIM,LIM])
-    ax.set_zlim([-LIM+.2*LIM,LIM-.2*LIM])
-
-    origin = [0,0,0]
-    x = [-1,0,0]
-    y = [0,1,0]
-    z = [0,0,1]
-    ax.quiver(origin[0], origin[1], origin[2], x[0], x[1], x[2], color='k', linewidth=AX_WTH, arrow_length_ratio=AX_LEN)
-    ax.quiver(origin[0], origin[1], origin[2], y[0], y[1], y[2], color='k', linewidth=AX_WTH, arrow_length_ratio=AX_LEN)
-    ax.quiver(origin[0], origin[1], origin[2], z[0], z[1], z[2], color='k', linewidth=AX_WTH, arrow_length_ratio=AX_LEN)
-    
-    ax.view_init(elev=ELEV, azim=AZIM)
-    ax.shade = True
-    
-    # Surface
-    
-    u = np.linspace(0, 2 * np.pi, 100)
-    v = np.linspace(0, np.pi, 100)
-    x = np.outer(np.cos(u), np.sin(v))
-    y = np.outer(np.sin(u), np.sin(v))
-    z = np.outer(np.ones(np.size(u)), np.cos(v))
-    surf = ax.plot_surface(x, y, z, cmap=cm.Greys_r, alpha=.03, linewidth=.1, edgecolor='k')
-    
-    # Plane
-    r = 1
-    center = (0, 0, 0)
-    phi = np.linspace(0, np.pi, 100)
-    theta = np.linspace(0, 2 * np.pi, 100)
-    x = r * np.outer(np.cos(theta), np.sin(phi)) + center[0]
-    y = r * np.outer(np.sin(theta), np.sin(phi)) + center[1]
-    z = r * np.outer(np.ones(np.size(theta)), np.cos(phi)) + center[2]
-    plt.contour(x, y, z, [0], colors='grey')
-
-
-    for edge in edges:
-        x0,y0,z0=shell_data[edge[0]]
-        x1,y1,z1=shell_data[edge[1]]
-        ax.plot([x0, x1], [y0, y1], [z0, z1], color='grey', alpha=1, linewidth=L_THC)  # You can choose any color
-        
-    for edge in cycle:
-        x0,y0,z0=shell_data[edge[0]]
-        x1,y1,z1=shell_data[edge[1]]
-        ax.quiver(x0, y0, z0, x1-x0, y1-y0, z1-z0, color='b', alpha=1.0, arrow_length_ratio=AR_LEN, linewidth=L_THC)    # x0,y0,z0=center, center, center
-        # ax.plot([x0, x1], [y0, y1], [z0, z1], color='blue', alpha=1, linewidth=L_THC)  # You can choose any color  
-   
-    colors = {1:'k', 6:'b', 7:'g'}
-    # Data
-    # for i,point in enumerate(data):
-    #     ax.scatter(point[0], point[1], point[2], color=colors[cat_data[i]], alpha=1.0, s=P_THC/2)
-    cat_data = [1, 7, 1, 1]
-    for i,point in enumerate(shell_data):
-        ax.scatter(point[0], point[1], point[2], color=colors[cat_data[i]], alpha=1.0, s=P_THC)
-        
-    if AX_STY=='_x':
-        ax.text(-1., 0.0, -.15, "$z$", color='k')
-        ax.text(-.02, 1.0, -.15, "$y$", color='k')
-        ax.text(-.1, 0, .98, "$x$", color='k')
 
 if __name__ == "__main__":
