@@ -77,9 +77,9 @@ This project is developed as part of ongoing research in symmetry-aware geometri
 
 ## ✨ Coming Soon
 
-- `pip install schull` support
-- Integration with popular molecular datasets
-- Prebuilt graph visualizations
+- Easy installation via `pip install schull`
+- Integration with widely-used molecular datasets
+- End-to-end examples on benchmark tasks and datasets
 
 ---
 
