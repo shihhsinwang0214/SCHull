@@ -21,7 +21,10 @@ git clone https://github.com/shihhsinwang0214/SCHull.git
 cd SCHull
 pip install .
 ```
-
+or 
+```bash
+pip install git+https://github.com/shihhsinwang0214/SCHull.git
+```
 ### 🧱 Import SCHull
 
 ```python
