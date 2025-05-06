@@ -18,6 +18,8 @@ This repository supports the ICLR 2025 Oral Presentation:
 
 ```bash
 git clone https://github.com/shihhsinwang0214/SCHull.git
+cd SCHull
+pip install .
 ```
 
 ### 🧱 Import SCHull
